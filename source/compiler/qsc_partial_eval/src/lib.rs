@@ -3063,6 +3063,10 @@ impl<'a> PartialEvaluator<'a> {
         body_block_id: BlockId,
     ) -> Result<EvalControlFlow, Error> {
         // Pop the current block node and create the necessary block nodes for the loop structure.
+        let cached_mappings = self
+            .eval_context
+            .get_current_scope()
+            .clone_static_var_mappings();
         let current_block_node = self.eval_context.pop_block_node();
         let conditional_block_node_id = self.create_program_block();
         let conditional_block_node = BlockNode {
@@ -3137,6 +3141,10 @@ impl<'a> PartialEvaluator<'a> {
             .0
             .push(jump_to_condition_ins);
         let _ = self.eval_context.pop_block_node();
+
+        self.eval_context
+            .get_current_scope_mut()
+            .keep_matching_static_var_mappings(&cached_mappings);
 
         Ok(EvalControlFlow::Continue(Value::unit()))
     }
